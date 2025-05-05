@@ -63,10 +63,8 @@ async def st(e):
     data: dict = Var.products()
     _lst = [Button.inline(data[x]["title"], data=f"buy_{x}") for x in data.keys()]
     button = list(zip(_lst[::2], _lst[1::2]))
-    button.append(
-        [_lst[-(z + 1)] for z in reversed(range(len(_lst) - ((len(_lst) // 2) * 2)))]
-    )
-    await e.reply("**Welcome. Choose your product to begin:**", buttons=button)
+    button.append([_lst[-1]]) if len(_lst) % 2 else None
+    await e.reply("**Welcome. Select the access you want to unlock:**", buttons=button)
 
 
 @bot.on(events.callbackquery.CallbackQuery(data=re.compile("buy_(.*)")))
@@ -75,20 +73,27 @@ async def _(e):
     data: dict = Var.wallets
     _lst = [Button.inline(x, data=f"{x}_{pid}") for x in data.keys()]
     button = list(zip(_lst[::2], _lst[1::2]))
-    button.append(
-        [_lst[-(z + 1)] for z in reversed(range(len(_lst) - ((len(_lst) // 2) * 2)))]
-    )
-    await e.edit("__Select Payment Currency 💵:__", buttons=button)
+    button.append([_lst[-1]]) if len(_lst) % 2 else None
+    await e.edit("__Select your payment currency: 💳__", buttons=button)
 
 
 @bot.on(events.callbackquery.CallbackQuery(data=re.compile("(.*)_(.*)")))
 async def _(e):
     currency = e.pattern_match.group(1).decode("utf-8").strip()
-    if currency not in Var.wallets.keys():
-        return
     pid = e.pattern_match.group(2).decode("utf-8").strip()
+    
+    if currency not in Var.wallets:
+        await e.answer("Invalid currency selected.", alert=True)
+        return
+
     euro = Var.products(pid)["price"]
-    crypto_amount = await eur_to_crypto(euro, COIN_GECKO_ID[currency])
+    crypto_id = COIN_GECKO_ID.get(currency)
+    crypto_amount = await eur_to_crypto(euro, crypto_id)
+
+    if crypto_amount is None:
+        await e.edit("⚠️ Failed to fetch live rate. Try again later.")
+        return
+
     uid = secrets.token_hex(6)
     PAYMENT_CONF[uid] = {
         "client_id": e.sender_id,
@@ -98,15 +103,7 @@ async def _(e):
         "price": f"{crypto_amount} {currency}",
         "pid": pid,
     }
-    # adtxt = APS.format(
-    #     PAYMENT_CONF[uid]["client_name"],
-    #     PAYMENT_CONF[uid]["client_id"],
-    #     PAYMENT_CONF[uid]["username"],
-    #     PAYMENT_CONF[uid]["time"],
-    #     PAYMENT_CONF[uid]["price"],
-    #     Var.products(pid)["title"],
-    # )
-    # await bot.send_message(Var.owner, adtxt)
+
     await e.edit(
         f"🛒 **Purchase Summary**\n\n"
         f"• Product: `{Var.products(pid)['title']}`\n"
@@ -114,14 +111,18 @@ async def _(e):
         f"• Live Rate: `€{euro}` ≈ `{crypto_amount}` **{currency}**\n\n"
         f"🏦 **Payment Address**\n"
         f"`{Var.wallets[currency]}`\n\n"
-        f"⚡ **Once payment is complete, please confirm by pressing the button below:**",
-        buttons=[[Button.inline("💸 I Have Done The Payment!", data=f"cliconf_{uid}")]],
+        f"**Once payment is complete, please confirm by pressing the button below:**",
+        buttons=[[Button.inline("🔒 Transaction Completed", data=f"cliconf_{uid}")]],
     )
 
 
 @bot.on(events.callbackquery.CallbackQuery(data=re.compile("cliconf_(.*)")))
 async def _(e):
     uid = e.pattern_match.group(1).decode("utf-8")
+    if uid not in PAYMENT_CONF:
+        await e.edit("❌ Error: Invalid payment session. Please restart with /start.")
+        return
+
     data = PAYMENT_CONF[uid]
     await bot.send_message(
         Var.owner,
@@ -133,37 +134,9 @@ async def _(e):
             data["time"],
             data["price"],
             Var.products(data["pid"])["title"],
-            # "N/A",
         ),
-        # buttons=[[Button.inline("Confrim!!", data=f"admconf_{uid}")]],
     )
-    await e.edit(
-        "✅ Payment confirmed. Access granted."
-        # "__🤝 Thanks For Placing Order 🤝, You Will Get Your Order Onces Confrimed By Admins__"
-    )
-
-
-# @bot.on(events.callbackquery.CallbackQuery(data=re.compile("admconf_(.*)")))
-# async def _(e):
-#     if e.sender_id != Var.owner:
-#         return
-#     uid = e.pattern_match.group(1).decode("utf-8")
-#     data = PAYMENT_CONF[uid]
-#     txt = ADMIN_ORDER_SLIP.format(
-#         data["client_name"],
-#         data["client_id"],
-#         data["username"],
-#         uid,
-#         data["time"],
-#         data["price"],
-#         Var.products(data["pid"])["title"],
-#         "CONFRIMED",
-#     )
-#     await bot.send_message(int(data["client_id"]), txt)
-#     await bot.send_message(
-#         int(data["client_id"]), "**✅ Payment confirmed. Access granted.**"
-#     )
-#     await e.edit(txt)
+    await e.edit("✅ Access will be unlocked after manual verification.")
 
 
 bot.loop.run_forever()
