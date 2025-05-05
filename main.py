@@ -45,10 +45,10 @@ Var = Conf()
     },
     "owner_id": 1421216867,
     "crypto_wallets_adrs": {
-        "BTC": "btcadddr",
-        "ETH": "0x86bA9d76c3D7d240e10A2eb59c271A6eFfc10149",
+        "BTC": "bc1qzpkmh34ae8r3n7lr78r4hufac8atzmzw7fpqqs",
+        "ETH": "0x8452710812318b78CDA1d667262268dC61f90630",
         "SOL": "7rdS4P4jKajBrFLSX7nVwkhCRzxL9duC7UtEprEcaFQq",
-        "USDT": "usdtaddr"
+        "USDT": "0x8452710812318b78CDA1d667262268dC61f90630enn "
     },
     "bot_token": "7474567322:AAFTVyzVgXA-fnBltBUnrKG9ZXOIPSK1xXY"
 }
@@ -168,7 +168,7 @@ async def _(e):
         f"• Live Rate: `€{euro}` ≈ `{crypto_amount}` **{currency}**\n\n"
         f"🏦 **Payment Address**\n"
         f"`{Var.wallets[currency]}`\n\n"
-        f"⚡ **Once payment is complete, please confirm by pressing the button below:**",
+        f"**Once payment is complete, please confirm by pressing the button below:**",
         buttons=[[Button.inline("🔒 Transaction Completed", data=f"cliconf_{uid}")]],
     )
 
