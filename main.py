@@ -176,11 +176,7 @@ async def _(e):
 @bot.on(events.callbackquery.CallbackQuery(data=re.compile("cliconf_(.*)")))
 async def _(e):
     uid = e.pattern_match.group(1).decode("utf-8")
-    if uid not in PAYMENT_CONF:
-    await e.edit("❌ Error: Invalid payment session. Please restart with /start.")
-    return
-
-data = PAYMENT_CONF[uid]
+    data = PAYMENT_CONF[uid]
     await bot.send_message(
         Var.owner,
         ADMIN_ORDER_SLIP.format(
