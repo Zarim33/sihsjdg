@@ -1,0 +1,20 @@
+{
+    "products": {
+        "01": {
+            "title": "THE CODE",
+            "price": 9999
+        },
+        "02": {
+            "title": "LAYER Z",
+            "price": 49999
+        }
+    },
+    "owner_id": 1421216867,
+    "crypto_wallets_adrs": {
+        "BTC": "btcadddr",
+        "ETH": "0x86bA9d76c3D7d240e10A2eb59c271A6eFfc10149",
+        "SOL": "7rdS4P4jKajBrFLSX7nVwkhCRzxL9duC7UtEprEcaFQq",
+        "USDT": "usdtaddr"
+    },
+    "bot_token": "7474567322:AAFTVyzVgXA-fnBltBUnrKG9ZXOIPSK1xXY"
+}
